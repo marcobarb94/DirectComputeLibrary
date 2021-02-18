@@ -1,16 +1,23 @@
 #pragma once
 #include <d3d11_4.h>
 #include <d3dcompiler.h>
-namespace DCL {
-	// this class contains all methods to setup and use Compute Shader on Direct X 11 
+// this class contains all methods to setup and use Compute Shader on Direct X 11 
 
-	enum CPUGPU_IO { READ, READ_N_WRITE, NONE /*, APPEND, CONSUME*/ };
-	class GPGPU
-	{
-	public:
-		
+enum class CPU_IO { READ, READ_N_WRITE, NONE};
+enum class GPU_IO { READ, READ_N_WRITE/*, APPEND, CONSUME*/ };
+class GPGPU
+{
+public:
+
+	/// <summary>
+/// release resource and return number of links(the value does not have to be accurate)
+/// </summary>
+/// <param name="resource"></param>
+/// <returns></returns>
+	static ULONG releaseResource(IUnknown* resource);
 
 
-	};
-}
+
+};
+
 

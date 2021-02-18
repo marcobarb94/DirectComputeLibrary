@@ -19,12 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="IOBuffer.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="GPGPU.cpp" />
     <ClCompile Include="GPUDevice.cpp" />
     <ClCompile Include="Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IOBuffer.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="GPGPU.h" />
     <ClInclude Include="GPUDevice.h" />

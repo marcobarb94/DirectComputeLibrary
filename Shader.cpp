@@ -1,54 +1,63 @@
 #include "Shader.h"
-
-using namespace DCL;
+#include <iostream>
 
 HRESULT Shader::compileFromFileAndLoad(LPCWSTR fileName, LPCSTR startupFunctionName)
 {
-	/// compiled shader errors
-	ID3DBlob* errorsPointer = NULL;
-
-	/// compiled shader code pointer
-	ID3DBlob* shaderCodePointer = NULL;
-
-
 	HRESULT res = D3DCompileFromFile(fileName, NULL, NULL, startupFunctionName, "cs_5_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, &shaderCodePointer, &errorsPointer);
-	if ((res != S_OK)) return res;
-	res = device.getDevice()->CreateComputeShader(shaderCodePointer->GetBufferPointer(), shaderCodePointer->GetBufferSize(), NULL, &computeShaderPointer);
+	if ((res != S_OK)) 
+		return res;
+	res = device->getDevice()->CreateComputeShader(shaderCodePointer->GetBufferPointer(), shaderCodePointer->GetBufferSize(), NULL, &computeShaderPointer);
 	isLoaded = (res == S_OK);
 	return res;
 }
 
 HRESULT Shader::loadCompiledShader(LPCWSTR fileName)
 {
+	// TODO
 	return E_NOTIMPL;
 }
 
-Shader::Shader(GPUDevice device)
+Shader::Shader(GPUDevice* device)
 {
 	this->device = device; 
+	GPUSlots = std::map<unsigned short, Buffer*>();
 }
 
 bool Shader::removeBuffer(unsigned short GPUslot)
 {
-	return false;
+	//TODO
+	delete GPUSlots[GPUslot];
+	GPUSlots.erase(GPUslot);
+	return true;
 }
 
 Shader::~Shader()
 {
+	// remove all shaders 
+	for (auto itv = GPUSlots.begin(); itv != GPUSlots.end(); itv++) {
+		delete itv->second;
+	}
+	//free Shader resources 
+	GPGPU::releaseResource(computeShaderPointer);
+	GPGPU::releaseResource(shaderCodePointer);
+	GPGPU::releaseResource(errorsPointer);
 }
 
 int Shader::runShader(UINT X, UINT Y, UINT Z)
 {
+	//TODO
 	return 0;
 }
 
-GPUDevice Shader::getDevice()
+GPUDevice* Shader::getGPUDevice()
 {
 	return device;
 }
 
-template<typename T>
-unsigned short Shader::addBuffer(CPUGPU_IO CPURequirement, CPUGPU_IO GPURequirement, size_t size, unsigned short GPUslot, T* data)
+void Shader::getLastErrors(const char* &messagePointer)
 {
-	return 0;
+	messagePointer = reinterpret_cast<const char*>(this->errorsPointer->GetBufferPointer());
+	//std::memcpy((void*)messagePointer, reinterpret_cast<const char*>(this->errorsPointer->GetBufferPointer()), sizeof this->errorsPointer->GetBufferPointer());
 }
+
+

@@ -1,6 +1,6 @@
 # Direct Compute Library
 
-The idea is to develop a CLI library to facilitate the use of Direct Compute on DirectX 11 (in future 12). 
+The idea is to develop a CLI library to facilitate the use of Direct Compute on DirectX 11 (in future 12). It's a work in progress and it will be released using MIT license. 
 
 ## Linker Input Dependences
 
@@ -32,7 +32,7 @@ D3DCompiler.lib
   - Shader: functions to compile and run a shader 
     - Buffer: defines buffers connected to the Shader - very easy to use!  different option since different I/O in CPU and GPU needed!
 
-BUFFERS I/O
+### BUFFERS I/O
 
 | I/O CPU/GPU  | READ       | READ & WRITE | APPEND | 
 | ------------ | ---------- | ------------ | ------------ |
