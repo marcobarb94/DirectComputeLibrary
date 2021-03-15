@@ -8,6 +8,7 @@
 #include <map>
 class Shader;
 #include "Shader.h"
+#include <memory>
 
 
 //#include <d3dx11.h> // non c'è più in W10 - how to survive: https://walbourn.github.io/living-without-d3dx/
@@ -19,7 +20,7 @@ public:
 	/// Constructor - set feature(s) level
 	/// </summary>
 	/// <param name="featureLevel"></param>
-	GPUDevice(D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_1);
+	GPUDevice(const D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_1);
 	/// <summary>
 	/// Create a device to run something on
 	/// </summary>
@@ -50,18 +51,33 @@ public:
 	/// Return the device 
 	/// </summary>
 	/// <returns></returns>
-	ID3D11Device* getDevice();
+	ID3D11Device* const getDevice ()const;
 
-	HRESULT getLastResult(); 
+	/// <summary>
+	/// Returns the context, for example to add buffers! 
+	/// </summary>
+	/// <returns></returns>
+	ID3D11DeviceContext* const getContext()const;
 
-	const char* getLastErrors();
+	HRESULT getLastResult() const;
 
-	Shader* getShader(int number);
+	std::unique_ptr<TCHAR[]> getLastResultText() const;
+
+	const char* getLastErrors() const;
+
+	bool isEnabled() const;
+
+	Shader* const getShader(int number) const;
+
+	bool setActiveShader(const Shader* shader);
+
+	bool setShaderOff();
+
 private:
 	ID3D11Device* device = NULL;
 	ID3D11DeviceContext* context = NULL;
 	D3D_FEATURE_LEVEL featureLevel;
-	bool isEnabled = false;
+	bool enabled = false; // double name
 	HRESULT lastResult = 0;
 
 	/// compiled shader errors - if to compile
@@ -70,6 +86,9 @@ private:
 	std::map <int, Shader*> loadedShaders;
 
 	int progressiveNumber = 0;
+	int enabledShader = -1; // which shader is enabled on this device?
+
+
 };
 
 

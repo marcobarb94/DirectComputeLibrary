@@ -41,10 +41,10 @@
     <ClInclude Include="Shader.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="Buffer.h">
+    <ClInclude Include="IOBuffer.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="IOBuffer.h">
+    <ClInclude Include="Buffer.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>

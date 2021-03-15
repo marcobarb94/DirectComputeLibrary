@@ -34,8 +34,14 @@ D3DCompiler.lib
 
 ### BUFFERS I/O
 
-| I/O CPU/GPU  | READ       | READ & WRITE | APPEND | 
-| ------------ | ---------- | ------------ | ------------ |
-| READ         | SB + SRV   | RWSB + SRV   | ASB + SRV | 
-| READ & WRITE | RWSB + UAV | RWSB + UAV   | None | 
-| NONE         | SB         | RWSB         | ASB | 
+| I/O CPU/GPU  | READ       | READ & WRITE | APPEND     |
+| ------------ | ---------- | ------------ | ---------- |
+| READ         | SB + SRV  [t] | RWSB + UAV [u]  | ASB + UAV? |
+| READ & WRITE | RWSB + UAV [u]  | RWSB + UAV  [u]  | None       |
+| NONE         | SB  + SRV  | RWSB + UAV   | ASB + UAV? |
+
+Remember: to bind resources, use:
+  - t – for shader resource views (SRV)
+  - s – for samplers
+  - u – for unordered access views (UAV)
+  - b – for constant buffer views (CBV)

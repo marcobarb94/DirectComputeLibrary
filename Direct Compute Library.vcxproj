@@ -26,8 +26,8 @@
     <ClCompile Include="Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="IOBuffer.h" />
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="IOBuffer.h" />
     <ClInclude Include="GPGPU.h" />
     <ClInclude Include="GPUDevice.h" />
     <ClInclude Include="Shader.h" />

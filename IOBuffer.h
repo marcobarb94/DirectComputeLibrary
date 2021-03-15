@@ -1,86 +1,160 @@
 #pragma once
 #ifndef IOBuffer_H
 #define IOBuffer_H
-#pragma message ("Figlio")
-class Buffer;
 #include "Buffer.h"
 
-template <typename T>
-class IOBuffer: public Buffer
+/// <summary>
+/// This class contains all useful interfaces to communicate with GPU buffers. 
+/// </summary>
+class Buffer
 {
+public:
+	Buffer(CPU_IO CPURequirement, GPU_IO GPURequirement, Shader* shader, size_t length, size_t byteDimension, unsigned short GPUslot);
+	~Buffer();
+	unsigned short getGPUslot() const;
+	bool isEnabled() const;
+
+	BUFFER_VIEW_TYPE getViewType() const;
+
+	void setView();
+
+	void removeView();
+protected:
+	/// <summary>
+	/// GPU slot of buffer. if 255 it means it is not set. 
+	/// https://docs.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-resources-limits
+	/// </summary>
+	unsigned short GPUslot;
+
+	ID3D11Buffer* bufferPointer = nullptr;
+	ID3D11ShaderResourceView* SRVpointer = nullptr;
+	ID3D11UnorderedAccessView* UAVpointer = nullptr;
+
+
+	Shader* shader;
+	CPU_IO CPURequirement;
+	GPU_IO GPURequirement;
+	/// <summary>
+	/// number of elements
+	/// </summary>
+	size_t length;
+	/// <summary>
+	/// byte per element
+	/// </summary>
+	size_t elementDimension;
+	/// <summary>
+	/// buffer working?
+	/// </summary>
+	bool enabled = false;
+
+	BUFFER_VIEW_TYPE type = BUFFER_VIEW_TYPE::NONE;
+
+	bool viewLoaded = false;
+
+#pragma region Resource Functions
+	//https://docs.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources
+#pragma region Views
+
+	HRESULT createShaderResourceView();
+
+	HRESULT createUnorderedAccessView();
+#pragma endregion
+
+#pragma region GPU buffers
+	/// <summary>
+	/// https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-object-structuredbuffer
+	/// </summary>
+	/// <returns></returns>
+	HRESULT createStructuredBuffer(void* dataPtr);
+	/// <summary>
+	/// https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-object-rwstructuredbuffer
+	/// </summary>
+	/// <returns></returns>
+	HRESULT createRWStructuredBuffer(void* dataPtr);
+	/// <summary>
+	/// https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-object-appendstructuredbuffer
+	/// </summary>
+	/// <returns></returns>
+	HRESULT createAppendStructuredBuffer();
+	/// <summary>
+	/// https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-object-consumestructuredbuffer
+	/// </summary>
+	/// <returns></returns>
+	HRESULT createConsumeStructuredBuffer();
+#pragma endregion
+#pragma endregion
+};
+template <typename T>
+class IOBuffer : public Buffer
+{
+public:
 	IOBuffer(CPU_IO CPURequirement, GPU_IO GPURequirement, Shader* shader, size_t size, unsigned short GPUslot);
 
-	bool create(T* array = NULL);
+	IOBuffer* create(T* array = NULL);
 
 	T* readBuffer();
 };
 
 template<typename T>
 IOBuffer<T>::IOBuffer(CPU_IO CPURequirement, GPU_IO GPURequirement, Shader* shader, size_t size, unsigned short GPUslot)
+	:Buffer(CPURequirement, GPURequirement, shader, size, sizeof T, GPUslot)
 {
-	Buffer::Buffer(CPURequirement, GPURequirement, shader, size, sizeof T, GPUslot);
 }
 
 template<typename T>
 T* IOBuffer<T>::readBuffer()
 {
-	//TODO
-	return nullptr;
+	if (this->CPURequirement == CPU_IO::READ || this->CPURequirement == CPU_IO::READ_N_WRITE)
+	{
+		//TODO
+		ID3D11Buffer* newBufferCopy = NULL;
+		// build copy buffer
+		D3D11_BUFFER_DESC desc;
+		ZeroMemory(&desc, sizeof(desc));
+		this->bufferPointer->GetDesc(&desc);
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+		desc.Usage = D3D11_USAGE_STAGING;
+		desc.BindFlags = 0;
+		desc.MiscFlags = 0;
+		HRESULT createBuff = this->shader->getGPUDevice()->getDevice()->CreateBuffer(&desc, NULL, &newBufferCopy);
+		if (createBuff != S_OK) return nullptr;
+		// copy resource in new buffer - i cannot use the GPU active buffer :(
+		this->shader->getGPUDevice()->getContext()->CopyResource(newBufferCopy, this->bufferPointer);
+		//read
+		D3D11_MAPPED_SUBRESOURCE MappedResource;
+		T* pointer;
+		this->shader->getGPUDevice()->getContext()->Map(newBufferCopy, 0, D3D11_MAP_READ, 0, &MappedResource);
+		pointer = (T*)MappedResource.pData;
+		// clear 
+		GPGPU::releaseResource(newBufferCopy);
+		return pointer;
+	}
+	else
+		return nullptr;
 }
 template<typename T>
-bool IOBuffer<T>::create(T* array)
+IOBuffer<T>* IOBuffer<T>::create(T* array)
 {
+	if (this->enabled)
+		return nullptr;
 	HRESULT res = S_FALSE;
-	switch (Buffer::CPURequirement)
+
+	switch (Buffer::GPURequirement)
 	{
-	case CPU_IO::READ:
-		switch (Buffer::GPURequirement)
-		{
-		case GPU_IO::READ:
-			res = Buffer::createStructuredBuffer();
-			break;
-		case GPU_IO::READ_N_WRITE:
-			res = Buffer::createRWStructuredBuffer();
-			break;
-		default:
-			break;
-		}
+	case GPU_IO::READ:
+		res = Buffer::createStructuredBuffer(array);
 		if (res == S_OK)
 			res = Buffer::createShaderResourceView();
 		break;
-	case CPU_IO::READ_N_WRITE:
-		switch (Buffer::GPURequirement)
-		{
-		case GPU_IO::READ:
-			res = Buffer::createStructuredBuffer();
-			break;
-		case GPU_IO::READ_N_WRITE:
-			res = Buffer::createRWStructuredBuffer();
-			break;
-		default:
-			break;
-		}
-		break;
+	case GPU_IO::READ_N_WRITE:
+		res = Buffer::createRWStructuredBuffer(array);
 		if (res == S_OK)
 			res = Buffer::createUnorderedAccessView();
-	case CPU_IO::NONE:
-		switch (Buffer::GPURequirement)
-		{
-		case GPU_IO::READ:
-			res = Buffer::createStructuredBuffer();
-			break;
-		case GPU_IO::READ_N_WRITE:
-			res = Buffer::createRWStructuredBuffer();
-			break;
-		default:
-			break;
-		}
 		break;
 	default:
 		break;
 	}
-
 	Buffer::enabled = res == S_OK;
-	return Buffer::enabled;
+	return this;
 }
 #endif
