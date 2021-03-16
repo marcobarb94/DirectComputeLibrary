@@ -105,9 +105,13 @@ private:
 
 	GPUDevice* device;
 	/// <summary>
-	/// GPU slots that are not free to use for tBuffer.  
+	/// GPU slots that are not free to use for tBuffer. (SRV) 
 	/// </summary>
 	std::map<unsigned short, Buffer*> tBufferGPUSlots;
+	/// <summary>
+	/// GPU slots that are not free to use for uBuffer. (UAV)
+	/// </summary>
+	std::map<unsigned short, Buffer*> uBufferGPUSlots;
 	/// <summary>
 	/// GPU slots that are not free to use for cBuffer (constant).  
 	/// </summary>
@@ -151,7 +155,7 @@ inline unsigned short Shader::addConstantBuffer(T &structBuffer, unsigned short 
 	// GPUSlot too big
 	if (GPUslot >= D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) return 1;
 	// GPUSlot not available
-	if (cBufferGPUSlots.find(GPUslot)==cBufferGPUSlots.end()) return 2; 
+	if (cBufferGPUSlots.find(GPUslot)!=cBufferGPUSlots.end()) return 2;
 	//if (sizeof T % 16 != 0) return -1; // multiple of 16 bytes! 
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));

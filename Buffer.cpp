@@ -152,8 +152,15 @@ HRESULT Buffer::createStructuredBuffer(void* dataPtr)
 	D3D11_BUFFER_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
 	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	if((this->CPURequirement == CPU_IO::NONE))
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	/*if ((this->CPURequirement == CPU_IO::NONE)) {
 		desc.Usage = D3D11_USAGE_IMMUTABLE;
+	}
+	if ((this->CPURequirement == CPU_IO::WRITE))
+	{
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+	}*/
 	desc.ByteWidth = this->length * this->elementDimension; // size in byte
 	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	desc.StructureByteStride = this->elementDimension; // number of elements

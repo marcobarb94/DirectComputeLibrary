@@ -43,6 +43,9 @@ Shader::~Shader()
 	for (auto itv = tBufferGPUSlots.begin(); itv != tBufferGPUSlots.end(); itv++) {
 		delete itv->second;
 	}
+	for (auto itv = uBufferGPUSlots.begin(); itv != uBufferGPUSlots.end(); itv++) {
+		delete itv->second;
+	}
 	for (auto itv = cBufferGPUSlots.begin(); itv != cBufferGPUSlots.end(); itv++) {
 		GPGPU::releaseResource(itv->second);
 	}
@@ -62,6 +65,10 @@ int Shader::runShader(UINT X, UINT Y, UINT Z)
 
 		// add all buffer to context
 		for (auto itv = tBufferGPUSlots.begin(); itv != tBufferGPUSlots.end(); itv++) {
+			itv->second->setView();
+		}
+		// add all buffer to context
+		for (auto itv = uBufferGPUSlots.begin(); itv != uBufferGPUSlots.end(); itv++) {
 			itv->second->setView();
 		}
 
@@ -103,8 +110,17 @@ unsigned short Shader::addBuffer(Buffer* buf)
 		return -1;
 	// add to context! 
 	if (buf->isEnabled())
-		if (tBufferGPUSlots.insert(std::pair<unsigned short, Buffer*>(buf->getGPUslot(), buf)).second)
-			return buf->getGPUslot();
+		switch (buf->getViewType())
+		{
+		case BUFFER_VIEW_TYPE::SRV:
+			if(tBufferGPUSlots.insert(std::pair<unsigned short, Buffer*>(buf->getGPUslot(), buf)).second)
+				return buf->getGPUslot();
+		case BUFFER_VIEW_TYPE::UAV:
+			if (uBufferGPUSlots.insert(std::pair<unsigned short, Buffer*>(buf->getGPUslot(), buf)).second)
+				return buf->getGPUslot();
+		default:
+			break;
+		}
 	delete buf;
 	return -1;
 }

@@ -4,8 +4,9 @@
 #include <memory>
 // this class contains all methods to setup and use Compute Shader on Direct X 11 
 
-enum class CPU_IO { READ, READ_N_WRITE, NONE};
-enum class GPU_IO { READ, READ_N_WRITE/*, APPEND, CONSUME*/ };
+// enum for behaviour during computation
+enum class CPU_IO { WRITE, NONE}; 
+enum class GPU_IO { READ, READ_N_WRITE/*, APPEND, CONSUME*/ };//SRV or UAV
 enum class BUFFER_VIEW_TYPE{SRV,UAV,NONE};
 class GPGPU
 {

@@ -91,6 +91,11 @@ public:
 	IOBuffer(CPU_IO CPURequirement, GPU_IO GPURequirement, Shader* shader, size_t size, unsigned short GPUslot);
 
 	IOBuffer* create(T* array = NULL);
+	/// <summary>
+	/// https://docs.microsoft.com/en-us/windows/win32/direct3d11/how-to--use-dynamic-resources
+	/// </summary>
+	/// <param name="array"></param>
+	void updateBuffer(T* array = NULL);
 
 	T* readBuffer();
 };
@@ -100,11 +105,15 @@ IOBuffer<T>::IOBuffer(CPU_IO CPURequirement, GPU_IO GPURequirement, Shader* shad
 	:Buffer(CPURequirement, GPURequirement, shader, size, sizeof T, GPUslot)
 {
 }
-
+/// <summary>
+/// 
+/// </summary>
+/// <typeparam name="T"></typeparam>
+/// <returns>Don't worry about delete :wink</returns>
 template<typename T>
 T* IOBuffer<T>::readBuffer()
 {
-	if (this->CPURequirement == CPU_IO::READ || this->CPURequirement == CPU_IO::READ_N_WRITE)
+	//if (this->type==BUFFER_VIEW_TYPE::UAV)
 	{
 		//TODO
 		ID3D11Buffer* newBufferCopy = NULL;
@@ -129,8 +138,8 @@ T* IOBuffer<T>::readBuffer()
 		GPGPU::releaseResource(newBufferCopy);
 		return pointer;
 	}
-	else
-		return nullptr;
+	/*else
+		return nullptr;*/
 }
 template<typename T>
 IOBuffer<T>* IOBuffer<T>::create(T* array)
